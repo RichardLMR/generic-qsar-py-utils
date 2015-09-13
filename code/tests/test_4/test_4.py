@@ -1,7 +1,7 @@
 #########################################################################################################
 # test_4.py
 # Implements unit tests for the genericQSARpyUtils project (see below).
-
+#
 # ########################################
 # #test_4.py: Key documentation :Contents#
 # ########################################
@@ -18,28 +18,17 @@
 # #which are relevant to generating input files, from cheminformatics datasets, which can be used to build and
 # #validate QSAR models (generated using Machine Learning methods implemented in other software packages)
 # #on such datasets.
-# #To this end, two Python modules are currently (as of 17/01/2013) provided. 
+# #To this end, two Python modules are currently provided.
 # #(1) ml_input_utils.py 
-# #Defines two classes:
-# #(i)descriptorsGenerator: This contains methods which can be used (as of 17/01/2013) to interconvert between molecular file formats (e.g. SDF, SMILES,...),
-# write the molecule ID to an SDF field, as well as calculate fingerprints presenting raw text codes for substructural features (e.g. extended connectivity fingerprints using jCompoundMapper or scaffold fragment fingerprints).
-# #(ii)descriptorsFilesProcessor: This contains methods which can be used (as of 17/01/2013) to convert raw fingerprint files 
-# #(i.e. files with a .txt extension in which each line corresponds to a molecule and has the following form:
-# #molId<TAB>FeatureB<TAB>FeatureC<TAB>FeatureA<TAB>FeatureX.... where FeatureB etc. is raw text string) into
-# #Machine Learning modelling input files (in either svmlight or csv format) where the features are represented using
-# #a bit-string encoding. (Here, a bi-string encoding means a descriptor corresponding to each - of a specifed set - of
-# #features found in the dataset, with the descriptor value being 1 or 0 if the feature was present or absent in a given molecule.)
-# #The methods in this class also allow for additional descriptors (e.g. a set of ClogP values) to be added to the modelling
-# #input files.
+# #Defines the following class:
+# #descriptorsFilesProcessor: This contains methods which can be used to prepare datasets in either CSV or svmlight format, including converting between these formats, based upon previously calculated fingerprints (expressed as a set of tab separated text strings for each instance) or numeric descriptors.
 # #(2) ml_functions.py
-# #Defines a set of functions which can be used (as of 17/01/2013) to carry out univariate feature selection
-# #and MonteCarlo cross-validation (which, for a single repetition, corresponds to a single train:test partition)
-# #for Machine Learning model input files in svmlight format.
-
+# #Defines a set of functions which can be used to carry out univariate feature selection,cross-validation etc. for Machine Learning model input files in svmlight format.
 # ###########################
 # #2. IMPORTANT LEGAL ISSUES#
 # ###########################
 # Copyright Syngenta Limited 2013
+#Copyright (c) 2013-2015 Liverpool John Moores University
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or (at
@@ -76,6 +65,12 @@
 # 2. rmarcheserobinson@gmail.com
 # #####################
 #########################################################################################################
+
+#################################
+#N.B. 02/06/13: new output files found to be inconsistent with old output files.
+#Hence, (1) commented out the new vs. old, and clean up new, part of the code, (2) checked all new output files were consistent with expectations[DONE=><OK>; However, perhaps the following message from run_tests.log indicates a possible cause of inconsistency with old results?:"C:\Python27\lib\site-packages\sklearn\feature_selection\univariate_selection.py:271: UserWarning: Duplicate p-values. Result may depend on feature ordering.There are probably duplicate features, or you used a classification score for a regression task.  warn("Duplicate p-values. Result may depend on feature ordering."], (3) copied the new output files ,  (4) uncommented the the new vs. old, and clean up new, part of the code, (5) re-ran tests.
+##################################
+
 import sys,re,os,glob
 project_name = 'genericQSARpyUtils'
 project_modules_to_test_dir = "\\".join(os.path.abspath(__file__).split('\\')[:-3])
@@ -113,6 +108,8 @@ class test_4(unittest.TestCase):
 				f_in.close()
 				del f_in
 		del file_name
+		
+		assert file2Contents[orig_file] == file2Contents[new_file]
 	
 	def test_default_training_set_based_feature_selection_for_raw_fingerprint_representations_of_training_and_test_set(self):
 		##############################
@@ -120,12 +117,10 @@ class test_4(unittest.TestCase):
 		print 'Running this unittest: ', self._testMethodName
 		##################################
 		
-		#Note to self: BELOW taken verbatim from ..\trial_runs\...\trial_run_fs_2.py
-		#from descriptor_utils import descriptorsGenerator,descriptorsFilesProcessor #Note to self: replaced with the next line.
 		from ml_input_utils import descriptorsFilesProcessor
 		from ml_functions import filter_features_for_svmlight_format_files
 		
-		id2TrainClass = {'mA':1,'mB':1,'mC':0,'mD':1,'mE':0,'mG':0,'mF':0,'mH':0} #trying to make sure (in train_fp_file)  one feature (f1) is only found in class 1, not class 0 - but that this feature (f1) is not found in the test set!
+		id2TrainClass = {'mA':1,'mB':1,'mC':0,'mD':1,'mE':0,'mG':0,'mF':0,'mH':0} #trying to make sure (in train_fp_file)  one feature (f1) is only found in class 1, not class 0, hence it should be selected, but that this feature (f1) is not found in the test set!
 		id2TestClass = {'mX':1,'mY':1,'mZ':1}
 		#Note to self: as ever, following file names need to be adjusted to make sure files in the directory of this test code Python file are parsed.
 		train_fp_file = r'%s\contrived_fp_train_file.txt' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])
@@ -158,22 +153,17 @@ class test_4(unittest.TestCase):
 		
 		print 'PREPARED original files (pre-feature selection) in svmlight format.'
 		
-		######
-		#<10/10/12::16:45: N.B.: INSPECTION OF ABOVE OUTPUT =>  our_descriptorsFilesProcessor.write_svmlight_format_modellingFile_from_multiple_descriptors_files(...) WORKS!>
-		######
-		
 		filter_features_for_svmlight_format_files(svmlight_format_train_file=all_feats_svmlight_train_file,svmlight_format_test_file=all_feats_svmlight_test_file,number_of_features_to_retain=2)
-		
-		#Note to self: ABOVE taken verbatim from ..\trial_runs\...\trial_run_fs_2.py
 		
 		filtered_feats_svmlight_train_file = r'%s\contrived_svmlight_train_file_fs_chi2_top_2.txt' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])
 		filtered_feats_svmlight_test_file = r'%s\contrived_svmlight_test_file_fs_chi2_top_2.txt' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])
+		training_set_feature_name_to_feature_index_file = r'%s\contrived_fp_train_file_fpFeat2InitialIndex.csv' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])
 		
 		
 		all_input_files_required_for_unittesting = [train_fp_file,test_fp_file]
 		
 		all_orig_output_files_to_be_compared_as_required_for_unittesting = []
-		for new_file in [all_feats_svmlight_train_file,all_feats_svmlight_test_file,filtered_feats_svmlight_train_file,filtered_feats_svmlight_test_file]:
+		for new_file in [all_feats_svmlight_train_file,all_feats_svmlight_test_file,filtered_feats_svmlight_train_file,filtered_feats_svmlight_test_file,training_set_feature_name_to_feature_index_file]:
 			file_ext = new_file.split('.')[-1]
 			orig_file = re.sub('(\.%s$)' % file_ext,' - Copy.%s' % file_ext,new_file)
 			all_orig_output_files_to_be_compared_as_required_for_unittesting.append(orig_file)

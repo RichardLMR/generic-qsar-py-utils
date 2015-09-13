@@ -1,8 +1,8 @@
 #########################################################################################################
 #run_tests.py
 #Runs all unit tests for the custom Python modules available as part of the genericQSARpyUtils project (see below)
-# - i.e. (as of 17/01/2013) ml_functions.py and ml_input_utils.py which you should have received along with this file.
-
+# - i.e. ml_functions.py and ml_input_utils.py which you should have received along with this file.
+#
 #########
 #Usage: #
 #########
@@ -27,28 +27,18 @@
 # #which are relevant to generating input files, from cheminformatics datasets, which can be used to build and
 # #validate QSAR models (generated using Machine Learning methods implemented in other software packages)
 # #on such datasets.
-# #To this end, two Python modules are currently (as of 17/01/2013) provided. 
+# #To this end, two Python modules are currently provided.
 # #(1) ml_input_utils.py 
 # #Defines two classes:
-# #(i)descriptorsGenerator: This contains methods which can be used (as of 17/01/2013) to interconvert between molecular file formats (e.g. SDF, SMILES,...),
-# write the molecule ID to an SDF field, as well as calculate fingerprints presenting raw text codes for substructural features (e.g. extended connectivity fingerprints using jCompoundMapper or scaffold fragment fingerprints).
-# #(ii)descriptorsFilesProcessor: This contains methods which can be used (as of 17/01/2013) to convert raw fingerprint files 
-# #(i.e. files with a .txt extension in which each line corresponds to a molecule and has the following form:
-# #molId<TAB>FeatureB<TAB>FeatureC<TAB>FeatureA<TAB>FeatureX.... where FeatureB etc. is raw text string) into
-# #Machine Learning modelling input files (in either svmlight or csv format) where the features are represented using
-# #a bit-string encoding. (Here, a bi-string encoding means a descriptor corresponding to each - of a specifed set - of
-# #features found in the dataset, with the descriptor value being 1 or 0 if the feature was present or absent in a given molecule.)
-# #The methods in this class also allow for additional descriptors (e.g. a set of ClogP values) to be added to the modelling
-# #input files.
+# #(i)descriptorsGenerator: This contains methods which can be used to interconvert between molecular file formats (e.g. SDF, SMILES,...), write the molecule ID to an SDF field, as well as calculate fingerprints presenting raw text codes for substructural features (e.g. extended connectivity fingerprints using jCompoundMapper or scaffold fragment fingerprints).
+# #(ii)descriptorsFilesProcessor: This contains methods which can be used to prepare datasets in either CSV or svmlight format, including converting between these formats, based upon previously calculated fingerprints (expressed as a set of tab separated text strings for each instance) or numeric descriptors.
 # #(2) ml_functions.py
-# #Defines a set of functions which can be used (as of 17/01/2013) to carry out univariate feature selection
-# #and MonteCarlo cross-validation (which, for a single repetition, corresponds to a single train:test partition)
-# #for Machine Learning model input files in svmlight format.
-
+# #Defines a set of functions which can be used to carry out univariate feature selection,cross-validation etc. for Machine Learning model input files in svmlight format.
 # ###########################
 # #2. IMPORTANT LEGAL ISSUES#
 # ###########################
 # Copyright Syngenta Limited 2013
+#Copyright (c) 2013-2015 Liverpool John Moores University
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or (at
@@ -87,6 +77,7 @@
 #########################################################################################################
 '''
 Copyright Syngenta Limited 2013
+#Copyright (c) 2013-2015 Liverpool John Moores University
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or (at

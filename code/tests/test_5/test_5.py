@@ -1,7 +1,7 @@
 #########################################################################################################
 # test_5.py
 # Implements unit tests for the genericQSARpyUtils project (see below).
-
+#
 # ########################################
 # #test_5.py: Key documentation :Contents#
 # ########################################
@@ -18,28 +18,17 @@
 # #which are relevant to generating input files, from cheminformatics datasets, which can be used to build and
 # #validate QSAR models (generated using Machine Learning methods implemented in other software packages)
 # #on such datasets.
-# #To this end, two Python modules are currently (as of 17/01/2013) provided. 
+# #To this end, two Python modules are currently provided.
 # #(1) ml_input_utils.py 
-# #Defines two classes:
-# #(i)descriptorsGenerator: This contains methods which can be used (as of 17/01/2013) to interconvert between molecular file formats (e.g. SDF, SMILES,...),
-# write the molecule ID to an SDF field, as well as calculate fingerprints presenting raw text codes for substructural features (e.g. extended connectivity fingerprints using jCompoundMapper or scaffold fragment fingerprints).
-# #(ii)descriptorsFilesProcessor: This contains methods which can be used (as of 17/01/2013) to convert raw fingerprint files 
-# #(i.e. files with a .txt extension in which each line corresponds to a molecule and has the following form:
-# #molId<TAB>FeatureB<TAB>FeatureC<TAB>FeatureA<TAB>FeatureX.... where FeatureB etc. is raw text string) into
-# #Machine Learning modelling input files (in either svmlight or csv format) where the features are represented using
-# #a bit-string encoding. (Here, a bi-string encoding means a descriptor corresponding to each - of a specifed set - of
-# #features found in the dataset, with the descriptor value being 1 or 0 if the feature was present or absent in a given molecule.)
-# #The methods in this class also allow for additional descriptors (e.g. a set of ClogP values) to be added to the modelling
-# #input files.
+# #Defines the following class:
+# #descriptorsFilesProcessor: This contains methods which can be used to prepare datasets in either CSV or svmlight format, including converting between these formats, based upon previously calculated fingerprints (expressed as a set of tab separated text strings for each instance) or numeric descriptors.
 # #(2) ml_functions.py
-# #Defines a set of functions which can be used (as of 17/01/2013) to carry out univariate feature selection
-# #and MonteCarlo cross-validation (which, for a single repetition, corresponds to a single train:test partition)
-# #for Machine Learning model input files in svmlight format.
-
+# #Defines a set of functions which can be used to carry out univariate feature selection,cross-validation etc. for Machine Learning model input files in svmlight format.
 # ###########################
 # #2. IMPORTANT LEGAL ISSUES#
 # ###########################
 # Copyright Syngenta Limited 2013
+#Copyright (c) 2013-2015 Liverpool John Moores University
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or (at
@@ -76,185 +65,260 @@
 # 2. rmarcheserobinson@gmail.com
 # #####################
 #########################################################################################################
+
+###############################################
+#<DONE>: d.i.a.test.run.fin.ok (all of below)#
+###############################################
+
 import sys,re,os,glob
 project_name = 'genericQSARpyUtils'
-project_modules_to_test_dir = "\\".join(os.path.abspath(__file__).split('\\')[:-3])
+project_modules_to_test_dir =  "\\".join(os.path.abspath(__file__).split('\\')[:-3])
 sys.path.append(project_modules_to_test_dir)
-
-
+from ml_functions import crossValidate_svmlight_file
 import unittest
+
 class test_5(unittest.TestCase):
 	
 	def clean_up_if_all_checks_passed(self,specific_files_not_to_delete):
-		all_files_to_delete = [file_name for file_name in glob.glob(r'%s\*' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])) if not re.search('(.\py$)',file_name) and not file_name in specific_files_not_to_delete]
+		all_files_to_delete = [file_name for file_name in glob.glob(r'%s\*' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])) if not re.search('(.\py$)',file_name) and not file_name in specific_files_not_to_delete and not re.search('(Copy\.txt$)',file_name)]
+		del file_name
 		
 		for FILE_TO_DELETE in all_files_to_delete:
 			os.remove(FILE_TO_DELETE)
 			assert not os.path.exists(FILE_TO_DELETE), " This still exists: \n %s" % FILE_TO_DELETE
 			print 'Removed this temporary file: ', FILE_TO_DELETE
 	
-	def apply_mccv_svmlight_function_to_contrived_input_using_different_settings(self,svmlight_file):
-		#<DONE>: d.i.p.t.r (including w.r.t. argument specification and reporting sections at start of def mccv_svmlight_file(...):)
-		from ml_functions import mccv_svmlight_file
-		
-		different_trial_settings = [[1,True],[2,True],[1,False],[2,False]]
-		
-		all_partitionedFiles = []
-		
-		for trial_number in range(0,len(different_trial_settings)):
-			
-			
-			
-			print '#'*50
-			
-			print 'Trial number: ', trial_number
-			
-			partitionedFiles = mccv_svmlight_file(svmlight_file,output_dir="\\".join(os.path.abspath(__file__).split('\\')[:-1]),perc_test=float(1.0/3),repetitions=different_trial_settings[trial_number][0],stratified=different_trial_settings[trial_number][1])
-			
-			
-			
-			print '\n'+'*'*50
-			print 'Names of created files: '
-			for rep in range(1,1+different_trial_settings[trial_number][0]):
-				for subset in ['TRAIN','TEST']:
-					print '-'*50
-					print 'Repetition: ', rep
-					print 'Subset: ', subset
-					print 'File name: ', partitionedFiles[rep][subset]
-					print '-'*50
-			print '\n'+'*'*50
-			print '#'*50
-			
-			all_partitionedFiles.append(partitionedFiles)
-		
-		assert not 0 == len(all_partitionedFiles)
-		assert len(different_trial_settings) == len(all_partitionedFiles)
-		
-		return all_partitionedFiles
+	def orderList(self,a_list):
+		assert type([]) == type(a_list)
+		a_list.sort()
+		return a_list
 	
-	def check_mccv_svmlight_file_function_always_generates_train_test_files_whose_lines_are_consistent_with_the_original_dataset_file_and_do_not_overlap(self,svmlight_file,all_partitionedFiles):
-		#<DONE>: d.i.p.t.r - including w.r.t. def apply_mccv_svmlight_function_to_contrived_input_using_different_settings(self,svmlight_file) and [where relevant to looping over setOfTrainTestFiles syntax], w.r.t. def mccv_svmlight_file(svmlight_file,output_dir=os.getcwd(),perc_test=0.2,repetitions=1,stratified=True,rng_seed=0):
-		count = 0
-		for setOfTrainTestFiles in all_partitionedFiles:
-			count +=1
-			for split_number in setOfTrainTestFiles:
-				print '#'*50
-				print 'setOfTrainTestFiles number %d' % count
-				print 'split_number = %d' % split_number
-				print 'Checking (1) that this training set file:' 
-				print setOfTrainTestFiles[split_number]['TRAIN']
-				print 'does not overlap with this test set file:'
-				print setOfTrainTestFiles[split_number]['TEST']
-				
-				subset2Lines = {}
-				for SUBSET in ['TRAIN','TEST']:
-					f_in = open(setOfTrainTestFiles[split_number][SUBSET])
-					try:
-						subset2Lines[SUBSET] = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
-						del LINE
-					finally:
-						f_in.close()
-						del f_in
-				assert 0 == len(set(subset2Lines['TRAIN']).intersection(set(subset2Lines['TEST'])))
-				
-				print 'Checking (2) that total dataset lines matched the sum of the training and test set lines.'
-				
-				train_plus_test_lines = subset2Lines['TRAIN']+subset2Lines['TEST']
-				del subset2Lines
-				train_plus_test_lines.sort()
-				
-				f_in = open(svmlight_file)
-				try:
-					all_lines_read_from_original_file = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
-					del LINE
-				finally:
-					f_in.close()
-					del f_in
-				
-				all_lines_read_from_original_file.sort()
-				
-				assert all_lines_read_from_original_file == train_plus_test_lines
-				del train_plus_test_lines
-				print '#'*50
+	def ordered_file_lines(self,abs_file_name):
+		f_in = open(abs_file_name)
+		try:
+			lines = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
+			del LINE
+			lines = self.orderList(lines)
+			assert not 0 == len(lines)
+		finally:
+			f_in.close()
+			del f_in
+		return lines
 	
-	def test_mccv_svmlight_file_function_always_generates_train_test_files_whose_lines_are_consistent_with_the_original_dataset_file_and_do_not_overlap(self):
+	def apply_crossValidate_svmlight_file_function_to_contrived_input_using_different_settings(self,svmlight_file):
+		#<DONE>: d.i.a.f.ok.r (including w.r.t. argument specification and reporting sections at start of def crossValidate_svmlight_file(...):)
+		
+		aTPF = {}
+		
+		trial_stratified_mccv_keepEverything_partitionedFiles = crossValidate_svmlight_file(svmlight_file,output_dir= "\\".join(os.path.abspath(__file__).split('\\')[:-1]),mccv=True,folds=1,perc_test=0.2,repetitions=2,stratified=True,only_write_IDs=False)
+		
+		aTPF['trial_stratified_mccv_keepEverything_partitionedFiles'] = trial_stratified_mccv_keepEverything_partitionedFiles
+		
+		trial_nonstratified_mccv_keepEverything_partitionedFiles = crossValidate_svmlight_file(svmlight_file,output_dir= "\\".join(os.path.abspath(__file__).split('\\')[:-1]),mccv=True,folds=1,perc_test=0.2,repetitions=2,stratified=False,only_write_IDs=False)
+		
+		aTPF['trial_nonstratified_mccv_keepEverything_partitionedFiles'] = trial_nonstratified_mccv_keepEverything_partitionedFiles
+		
+		trial_stratified_mccv_keepIDs_partitionedFiles = crossValidate_svmlight_file(svmlight_file,output_dir= "\\".join(os.path.abspath(__file__).split('\\')[:-1]),mccv=True,folds=1,perc_test=0.2,repetitions=2,stratified=True,only_write_IDs=True)
+		
+		aTPF['trial_stratified_mccv_keepIDs_partitionedFiles'] = trial_stratified_mccv_keepIDs_partitionedFiles
+		
+		trial_nonstratified_mccv_keepIDs_partitionedFiles = crossValidate_svmlight_file(svmlight_file,output_dir= "\\".join(os.path.abspath(__file__).split('\\')[:-1]),mccv=True,folds=1,perc_test=0.2,repetitions=2,stratified=False,only_write_IDs=True)
+		
+		aTPF['trial_nonstratified_mccv_keepIDs_partitionedFiles'] = trial_nonstratified_mccv_keepIDs_partitionedFiles
+		
+		trial_stratified_kfoldcv_keepEverything_partitionedFiles = crossValidate_svmlight_file(svmlight_file,output_dir= "\\".join(os.path.abspath(__file__).split('\\')[:-1]),mccv=False,folds=5,perc_test=0.2,repetitions=2,stratified=True,only_write_IDs=False)
+		
+		aTPF['trial_stratified_kfoldcv_keepEverything_partitionedFiles'] = trial_stratified_kfoldcv_keepEverything_partitionedFiles
+		
+		trial_nonstratified_kfoldcv_keepEverything_partitionedFiles = crossValidate_svmlight_file(svmlight_file,output_dir= "\\".join(os.path.abspath(__file__).split('\\')[:-1]),mccv=False,folds=5,perc_test=0.2,repetitions=2,stratified=False,only_write_IDs=False)
+		
+		aTPF['trial_nonstratified_kfoldcv_keepEverything_partitionedFiles'] = trial_nonstratified_kfoldcv_keepEverything_partitionedFiles
+		
+		trial_stratified_kfoldcv_keepIDs_partitionedFiles = crossValidate_svmlight_file(svmlight_file,output_dir= "\\".join(os.path.abspath(__file__).split('\\')[:-1]),mccv=False,folds=5,perc_test=0.2,repetitions=2,stratified=True,only_write_IDs=True)
+		
+		aTPF['trial_stratified_kfoldcv_keepIDs_partitionedFiles'] = trial_stratified_kfoldcv_keepIDs_partitionedFiles
+		
+		trial_nonstratified_kfoldcv_keepIDs_partitionedFiles = crossValidate_svmlight_file(svmlight_file,output_dir= "\\".join(os.path.abspath(__file__).split('\\')[:-1]),mccv=False,folds=5,perc_test=0.2,repetitions=2,stratified=False,only_write_IDs=True)
+		
+		aTPF['trial_nonstratified_kfoldcv_keepIDs_partitionedFiles'] = trial_nonstratified_kfoldcv_keepIDs_partitionedFiles
+		
+		return aTPF
+
+	def check_crossValidate_svmlight_file_function_generates_train_test_files_whose_lines_are_consistent_with_the_original_dataset_file_and_do_not_overlap(self,svmlight_file,aTPF):
+		#<DONE>: d.i.a.f.ok.r - including w.r.t. def apply_crossValidate_svmlight_file_function_to_contrived_input_using_different_settings(self,svmlight_file) and [where relevant to looping over setOfTrainTestFiles syntax], w.r.t. def crossValidate_svmlight_file(...):
+		
+		f_in = open(svmlight_file)
+		try:
+			all_lines = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
+			del LINE
+			all_lines.sort()
+			all_IDs = [LINE.split('#')[1] for LINE in all_lines]
+			all_IDs.sort()
+		finally:
+			f_in.close()
+			del f_in
+		
+		for scenario in aTPF:
+			for rep in aTPF[scenario]:
+				for FOLD in aTPF[scenario][rep]:
+					print '-'*50
+					print 'Considering train:test split for:'
+					print 'scenario = ', scenario
+					print 'rep = ', rep
+					print 'FOLD = ' , FOLD
+					print '-'*50
+					
+					linesDict = {}
+					
+					for subset in aTPF[scenario][rep][FOLD]:
+						f_in = open(aTPF[scenario][rep][FOLD][subset])
+						try:
+							linesDict[subset] = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
+							del LINE
+						finally:
+							f_in.close()
+							del f_in
+					
+					assert 0 == len(set(linesDict['TRAIN']).intersection(set(linesDict['TEST'])))
+					
+					should_equal_all_lines_or_all_IDs = linesDict['TRAIN']+linesDict['TEST']
+					should_equal_all_lines_or_all_IDs.sort()
+					assert not 0 == len(should_equal_all_lines_or_all_IDs)
+					
+					if not re.search('(onlyIDs\.txt)',aTPF[scenario][rep][FOLD]['TRAIN']):
+						assert all_lines == should_equal_all_lines_or_all_IDs, " Problem corresponds to this training file:\n %s \n all_lines = \n %s \n should_equal_all_lines_or_all_IDs = \n %s \n" % (aTPF[scenario][rep][FOLD]['TRAIN'],str(all_lines),str(should_equal_all_lines_or_all_IDs))
+					else:
+						assert all_IDs == should_equal_all_lines_or_all_IDs, " Problem corresponds to this training file:\n %s \n all_IDs = \n %s \n should_equal_all_lines_or_all_IDs = \n %s \n" % (aTPF[scenario][rep][FOLD]['TRAIN'],str(all_IDs),str(should_equal_all_lines_or_all_IDs))
+
+	def test_crossValidate_svmlight_file_function_generates_train_test_files_whose_lines_are_consistent_with_the_original_dataset_file_and_do_not_overlap(self):
 		##############################
 		print 'Running unittests for this project: ', project_name
 		print 'Running this unittest: ', self._testMethodName
 		##################################
 		
 		
-		#<DONE>: d.i.p.t.r - including w.r.t. apply_mccv_svmlight_function_to_contrived_input_using_different_settings(self,svmlight_file) and check_mccv_svmlight_file_function_always_generates_train_test_files_whose_lines_are_consistent_with_the_original_dataset_file_and_do_not_overlap(...)
+		#<DONE>: d.i.a.f.ok.r - including w.r.t. apply_crossValidate_svmlight_file_function_to_contrived_input_using_different_settings and check_crossValidate_svmlight_file_function_generates_train_test_files_whose_lines_are_consistent_with_the_original_dataset_file_and_do_not_overlap(...)
 		
-		svmlight_file = r'%s\contrived_svmlight_train_file.txt' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])
+		svmlight_file = r'%s\checkcv_svmlight_train_file_for_binary_classification.txt' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])
 		
-		all_partitionedFiles = self.apply_mccv_svmlight_function_to_contrived_input_using_different_settings(svmlight_file)
+		aTPF = self.apply_crossValidate_svmlight_file_function_to_contrived_input_using_different_settings(svmlight_file)
 		
 		########################################################
 		#Function section which is specific to the current test:
-		self.check_mccv_svmlight_file_function_always_generates_train_test_files_whose_lines_are_consistent_with_the_original_dataset_file_and_do_not_overlap(svmlight_file,all_partitionedFiles)
+		self.check_crossValidate_svmlight_file_function_generates_train_test_files_whose_lines_are_consistent_with_the_original_dataset_file_and_do_not_overlap(svmlight_file,aTPF)
 		########################################################
 		
 		self.clean_up_if_all_checks_passed(specific_files_not_to_delete=[svmlight_file])
 	
-	def test_mccv_svmlight_file_function_can_actually_give_different_results_if_switch_off_stratification(self):
+	def test_crossValidate_svmlight_file_function_can_actually_give_different_results_if_switch_off_stratification(self):
 		##############################
 		print 'Running unittests for this project: ', project_name
 		print 'Running this unittest: ', self._testMethodName
 		##################################
 		
 		
-		#<DONE>: d.i.p.t.r - including w.r.t. apply_mccv_svmlight_function_to_contrived_input_using_different_settings(self,svmlight_file) and def mccv_svmlight_file(...) where relevant to check that specificying criteria for stratified/non-stratified train/test file names.
+		#<DONE>: d.i.a.f.ok.r - including w.r.t. apply_crossValidate_svmlight_file_function_to_contrived_input_using_different_settings(self,svmlight_file) and def crossValidate_svmlight_file(...) where relevant to check that specifying criteria for stratified/non-stratified train/test file names.
 		
 		
 		
-		svmlight_file = r'%s\contrived_svmlight_train_file.txt' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])
+		svmlight_file = r'%s\checkcv_svmlight_train_file_for_binary_classification.txt' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])
 		
-		all_partitionedFiles = self.apply_mccv_svmlight_function_to_contrived_input_using_different_settings(svmlight_file)
+		aTPF = self.apply_crossValidate_svmlight_file_function_to_contrived_input_using_different_settings(svmlight_file)
 		
 		########################################################
 		#Function section which is specific to the current test:
-		#different_trial_settings = [[1,True],[2,True],[1,False],[2,False]] #copied from def apply_mccv_svmlight_function_to_contrived_input_using_different_settings(self,svmlight_file)
-		all_stratifiedPartitionFiles = [] 
-		for TRIAL_NUMBER in range(0,len(all_partitionedFiles)):
-			for rep in all_partitionedFiles[TRIAL_NUMBER]:
-				for subset in all_partitionedFiles[TRIAL_NUMBER][rep]:
-					assert re.search('(R%d%s)' % (rep,subset),all_partitionedFiles[TRIAL_NUMBER][rep][subset])
-					if TRIAL_NUMBER in [0,1]:
-						assert re.search('(STrue)',all_partitionedFiles[TRIAL_NUMBER][rep][subset])
-						all_stratifiedPartitionFiles.append(all_partitionedFiles[TRIAL_NUMBER][rep][subset])
-					else:
-						assert re.search('(SFalse)',all_partitionedFiles[TRIAL_NUMBER][rep][subset])
-		del TRIAL_NUMBER
-		del rep
-		del subset
+		all_strat_cv_scenarios = [key for key in aTPF.keys() if re.search('(_stratified_)',key)]
+		del key
+		assert 0.5*len(aTPF.keys()) == len(all_strat_cv_scenarios)
 		
-		for stratifiedPartitionFILE in all_stratifiedPartitionFiles:
-			corresponding_nonstratifiedPartitionFILE = re.sub('(STrue)','SFalse',stratifiedPartitionFILE)
-			
-			print '='*50
-			print 'Comparing:'
-			print stratifiedPartitionFILE
-			print 'and:'
-			print corresponding_nonstratifiedPartitionFILE
-			
-			stratifiedPartitionFILE_lines_THEN_corresponding_nonstratifiedPartitionFILE_lines = []
-			
-			for FILE in [stratifiedPartitionFILE,corresponding_nonstratifiedPartitionFILE]:
-				
-				f_in = open(FILE)
-				try:
-					lines = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
-					del LINE
-				finally:
-					f_in.close()
-				lines.sort()
-				
-				stratifiedPartitionFILE_lines_THEN_corresponding_nonstratifiedPartitionFILE_lines.append(lines)
-				del lines
-			
-			assert not stratifiedPartitionFILE_lines_THEN_corresponding_nonstratifiedPartitionFILE_lines[0] == stratifiedPartitionFILE_lines_THEN_corresponding_nonstratifiedPartitionFILE_lines[1]
-			print '='*50
+		for strat_cv_scenario in all_strat_cv_scenarios:
+			for rep in aTPF[strat_cv_scenario]:
+				for FOLD in aTPF[strat_cv_scenario][rep]:
+					for subset in ['TRAIN','TEST']:
+						corresponding_non_strat_cv_scenario = re.sub('(_stratified_)','_nonstratified_',strat_cv_scenario)
+						assert not self.ordered_file_lines(aTPF[strat_cv_scenario][rep][FOLD][subset]) == self.ordered_file_lines(aTPF[corresponding_non_strat_cv_scenario][rep][FOLD][subset])
+		
+		########################################################
+		
+		self.clean_up_if_all_checks_passed(specific_files_not_to_delete=[svmlight_file])
+	
+	def test_crossValidate_svmlight_file_function_can_actually_give_different_partitions_for_different_reps(self):
+		##############################
+		print 'Running unittests for this project: ', project_name
+		print 'Running this unittest: ', self._testMethodName
+		##################################
+		
+		
+		#<DONE>: d.i.a.f.ok.r
+		
+		
+		
+		svmlight_file = r'%s\checkcv_svmlight_train_file_for_binary_classification.txt' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])
+		
+		aTPF = self.apply_crossValidate_svmlight_file_function_to_contrived_input_using_different_settings(svmlight_file)
+		
+		########################################################
+		#Function section which is specific to the current test:
+		for scenario in aTPF:
+			for rep in aTPF[scenario]:
+				for other_rep in aTPF[scenario].keys()[aTPF[scenario].keys().index(rep)+1:]:
+					assert not rep == other_rep
+					for FOLD in aTPF[scenario][rep]:
+						for same_or_different_fold in aTPF[scenario][rep]:
+							for subset in ['TRAIN','TEST']:
+								assert not self.ordered_file_lines(aTPF[scenario][rep][FOLD][subset]) == self.ordered_file_lines(aTPF[scenario][other_rep][same_or_different_fold][subset])
+		
+		########################################################
+		
+		self.clean_up_if_all_checks_passed(specific_files_not_to_delete=[svmlight_file])
+	
+	def test_reproducibility_of_kfoldcv(self):
+		##############################
+		print 'Running unittests for this project: ', project_name
+		print 'Running this unittest: ', self._testMethodName
+		##################################
+		
+		
+		svmlight_file = r'%s\checkcv_svmlight_train_file_for_binary_classification.txt' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])
+		
+		aTPF = self.apply_crossValidate_svmlight_file_function_to_contrived_input_using_different_settings(svmlight_file)
+		
+		########################################################
+		#Function section which is specific to the current test:
+		for scenario in aTPF:
+			#################
+			if re.search('(mccv)',scenario):
+				continue
+			#################
+			for rep in aTPF[scenario]:
+				for FOLD in aTPF[scenario][rep]:
+					for subset in ['TRAIN','TEST']:
+						assert self.ordered_file_lines(aTPF[scenario][rep][FOLD][subset]) == self.ordered_file_lines(re.sub('(\.txt$)',' - Copy.txt',aTPF[scenario][rep][FOLD][subset])), "%s and %s are different???" % (aTPF[scenario][rep][FOLD][subset],re.sub('(\.txt$)',' - Copy.txt',aTPF[scenario][rep][FOLD][subset]))
+		
+		########################################################
+		
+		self.clean_up_if_all_checks_passed(specific_files_not_to_delete=[svmlight_file])
+	
+	def test_crossValidate_svmlight_file_function_only_IDs_files_consistent(self):
+		##############################
+		print 'Running unittests for this project: ', project_name
+		print 'Running this unittest: ', self._testMethodName
+		##################################
+		
+		
+		svmlight_file = r'%s\checkcv_svmlight_train_file_for_binary_classification.txt' % "\\".join(os.path.abspath(__file__).split('\\')[:-1])
+		
+		aTPF = self.apply_crossValidate_svmlight_file_function_to_contrived_input_using_different_settings(svmlight_file)
+		
+		########################################################
+		#Function section which is specific to the current test:
+		for scenario in aTPF:
+			for rep in aTPF[scenario]:
+				for FOLD in aTPF[scenario][rep]:
+					for subset in ['TRAIN','TEST']:
+						if re.search('(_onlyIDs\.txt$)',aTPF[scenario][rep][FOLD][subset]):
+							assert self.ordered_file_lines(aTPF[scenario][rep][FOLD][subset]) == self.orderList([LINE.split('#')[1] for LINE in self.ordered_file_lines(re.sub('(_onlyIDs\.txt$)','.txt',aTPF[scenario][rep][FOLD][subset]))]) #, " This pair of files is inconsistent: \n %s \n vs. \n %s \n first file list = \n %s \n second file list = %s \n" % (
+							del LINE
 		
 		########################################################
 		
