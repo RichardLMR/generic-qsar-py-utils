@@ -1,0 +1,5 @@
+benzoic_acid	c1ccccc1
+michael_acceptor
+halo_alkene
+propene
+propyl_amine

@@ -1,0 +1,3 @@
+molB_INDEX=0	[C,N]	[Au]
+molA_INDEX=1	c1ccc[c,n]c1	CCCBr
+molC_INDEX=2	[Au]	CCCBr	f1
