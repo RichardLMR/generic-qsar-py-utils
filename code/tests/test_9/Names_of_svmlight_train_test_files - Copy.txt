@@ -1,0 +1,2 @@
+svmlight_train_file = svmlight_dataset-cp-from-test_5unitTestingTRAIN.txt
+svmlight_test_file = svmlight_dataset-cp-from-test_5unitTestingTEST.txt
