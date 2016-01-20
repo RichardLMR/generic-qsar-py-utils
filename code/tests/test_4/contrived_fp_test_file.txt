@@ -1,3 +1,0 @@
-mX	f2
-mY	f3	f2	f2
-mZ	f4

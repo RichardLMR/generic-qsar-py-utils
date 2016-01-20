@@ -1,2 +1,0 @@
-TRAIN=test14_svmlight_REG_train_file_nonDefault_fs_f_regression_top_1.txt
-TEST=test14_svmlight_REG_test_file_nonDefault_fs_f_regression_top_1.txt

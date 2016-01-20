@@ -1,2 +1,0 @@
-svmlight_train_file = toy10_complete_svmlight_file_toy.out.labelTRAIN.txt
-svmlight_test_file = toy10_complete_svmlight_file_toy.out.labelTEST.txt

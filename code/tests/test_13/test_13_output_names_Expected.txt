@@ -1,2 +1,0 @@
-TRAIN=toy13_complete_svmlight_file_2-FoldCVR3SFalse_R1F1TRAIN_nonDefault_fs_chi2_top_1.txt
-TEST=toy13_complete_svmlight_file_2-FoldCVR3SFalse_R1F1TEST_nonDefault_fs_chi2_top_1.txt

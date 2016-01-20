@@ -1,2 +1,0 @@
-molB_INDEX=0	[C,N]	[Au]
-molC_INDEX=2	[Au]	CCCBr	f1
