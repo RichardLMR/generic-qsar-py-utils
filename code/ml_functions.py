@@ -156,7 +156,7 @@ def remove_extra_features(orig_svmlight_format_file,new_svmlight_format_file,ind
 	
 	f_in = open(orig_svmlight_format_file)
 	try:
-		orig_data = [LINE.replace('\n','') for LINE in f_in.readlines()]
+		orig_data = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
 		del LINE
 	finally:
 		f_in.close()
@@ -272,7 +272,7 @@ def crossValidate_svmlight_file(svmlight_file,output_dir=os.getcwd(),mccv=True,f
 	
 	f_in = open(svmlight_file)
 	try:
-		all_data_lines = [LINE.replace('\n','') for LINE in f_in.readlines()]
+		all_data_lines = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
 		del LINE
 	finally:
 		f_in.close()
@@ -437,7 +437,7 @@ def crossValidate_svmlight_file(svmlight_file,output_dir=os.getcwd(),mccv=True,f
 
 
 def predefined_split_svmlight_file(svmlight_file,train_IDs_file,test_IDs_file,output_label=''):
-	
+	#<DONE=><OK>>: d.i.p.t.f.r
 	print '='*50
 	print 'Partitioning %s into a training and test set based upon \n the train IDs read from %s \n and the test IDs read from %s \n Labelling train:test pair of files using the following label: \n %s \n' % (svmlight_file,train_IDs_file,test_IDs_file,output_label)
 	
@@ -452,7 +452,7 @@ def predefined_split_svmlight_file(svmlight_file,train_IDs_file,test_IDs_file,ou
 			IDs_file = test_IDs_file
 		f_in = open(IDs_file)
 		try:
-			subsetIDsDict[subset] = [LINE.replace('\n','') for LINE in f_in.readlines()]
+			subsetIDsDict[subset] = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
 			del LINE
 		finally:
 			f_in.close()
@@ -464,13 +464,13 @@ def predefined_split_svmlight_file(svmlight_file,train_IDs_file,test_IDs_file,ou
 	
 	f_in = open(svmlight_file)
 	try:
-		all_lines = f_in.readlines()#[LINE.replace('\n','') for LINE in f_in.readlines()]
-		#del LINE
+		all_lines = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
+		del LINE
 	finally:
 		f_in.close()
 		del f_in
 	
-	id2Line = dict(zip([LINE.split('#')[1].split('\n')[0] for LINE in all_lines],[LINE for LINE in all_lines]))
+	id2Line = dict(zip([LINE.split('#')[1] for LINE in all_lines],[LINE for LINE in all_lines]))
 	del LINE
 	
 	assert len(id2Line) == len(all_lines) , " Duplicate IDs in complete dataset file???"
@@ -486,11 +486,11 @@ def predefined_split_svmlight_file(svmlight_file,train_IDs_file,test_IDs_file,ou
 	subset2svmlightFile = {}
 	
 	for subset in subsetIDsDict:
-		file = re.sub('(\.%s$)' % svmlight_file.split('.')[-1], '%s%s.%s' % (output_label,subset,svmlight_file.split('.')[-1]),svmlight_file)
+		file = re.sub('(\.%s$)' % svmlight_file.split('.')[-1], '%s%s.txt' % (output_label,subset),svmlight_file)
 		f_out = open(file,'w')
 		try:
 			for ID in subsetIDsDict[subset]:
-				f_out.write(id2Line[ID])#+'\n')
+				f_out.write(id2Line[ID]+'\n')
 		finally:
 			f_out.close()
 			del f_out

@@ -80,7 +80,7 @@ class descriptorsFilesProcessor():
 		id2string_fp_features = {} #N.B.: For now, we will only compute binary descriptors based upon feature occurence => only the set of unique features per compound is required!
 		f_in = open(string_fp_file)
 		try:
-			lines = [LINE.replace('\n','') for LINE in f_in.readlines()]
+			lines = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
 			assert not 0 == len(lines), " Fingerprints file is empty???"
 			del LINE
 		finally:
@@ -351,7 +351,7 @@ class descriptorsFilesProcessor():
 		
 		f_in = open(svmlight_file)
 		try:
-			all_data_lines = [LINE.replace('\n','') for LINE in f_in.readlines()]
+			all_data_lines = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
 			del LINE
 		finally:
 			f_in.close()
@@ -431,7 +431,7 @@ class descriptorsFilesProcessor():
 		#d.i.p.t.r.:<DONE>
 		f_in = open(ID_responseValue_descriptors_File)
 		try:
-			input_lines = [LINE.replace('\n','') for LINE in f_in.readlines()]
+			input_lines = [re.sub(r'\r|\n','',LINE) for LINE in f_in.readlines()]
 			del LINE
 		finally:
 			f_in.close()
