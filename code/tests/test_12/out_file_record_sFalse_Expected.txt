@@ -1,0 +1,12 @@
+rep=1;FOLD=1;subset=TRAIN;file=toy12_complete_svmlight_file_2-FoldCVR3SFalse_R1F1TRAIN.txt
+rep=1;FOLD=1;subset=TEST;file=toy12_complete_svmlight_file_2-FoldCVR3SFalse_R1F1TEST.txt
+rep=1;FOLD=2;subset=TRAIN;file=toy12_complete_svmlight_file_2-FoldCVR3SFalse_R1F2TRAIN.txt
+rep=1;FOLD=2;subset=TEST;file=toy12_complete_svmlight_file_2-FoldCVR3SFalse_R1F2TEST.txt
+rep=2;FOLD=1;subset=TRAIN;file=toy12_complete_svmlight_file_2-FoldCVR3SFalse_R2F1TRAIN.txt
+rep=2;FOLD=1;subset=TEST;file=toy12_complete_svmlight_file_2-FoldCVR3SFalse_R2F1TEST.txt
+rep=2;FOLD=2;subset=TRAIN;file=toy12_complete_svmlight_file_2-FoldCVR3SFalse_R2F2TRAIN.txt
+rep=2;FOLD=2;subset=TEST;file=toy12_complete_svmlight_file_2-FoldCVR3SFalse_R2F2TEST.txt
+rep=3;FOLD=1;subset=TRAIN;file=toy12_complete_svmlight_file_2-FoldCVR3SFalse_R3F1TRAIN.txt
+rep=3;FOLD=1;subset=TEST;file=toy12_complete_svmlight_file_2-FoldCVR3SFalse_R3F1TEST.txt
+rep=3;FOLD=2;subset=TRAIN;file=toy12_complete_svmlight_file_2-FoldCVR3SFalse_R3F2TRAIN.txt
+rep=3;FOLD=2;subset=TEST;file=toy12_complete_svmlight_file_2-FoldCVR3SFalse_R3F2TEST.txt

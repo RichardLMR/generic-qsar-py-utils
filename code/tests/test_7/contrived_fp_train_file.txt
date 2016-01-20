@@ -1,0 +1,8 @@
+mA	f1	f2	f4	f6
+mB	f2	f1
+mC	f5
+mD	f1	f2
+mE	f3	f4
+mF	f3	f3	f3
+mG	f6	f2	f4	f5
+mH	f2
